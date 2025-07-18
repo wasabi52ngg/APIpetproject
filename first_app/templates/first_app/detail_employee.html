@@ -1,0 +1,13 @@
+{% load first_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% for attr,val in employee|model_fields%}
+<p>Аттрибут: {{attr}} Значение: {{val}}</p>
+{% endfor %}
+</body>
+</html>
