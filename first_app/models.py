@@ -284,10 +284,12 @@ class Customer(models.Model):
     slug = models.SlugField(default='', null=False, unique=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}" if self.first_name and self.last_name else self.email or "Безымянный клиент"
+        return f"{self.first_name} {self.last_name}" if self.first_name and self.last_name else (self.email
+            or "Безымянный клиент")
 
     def save(self, *args, **kwargs):
-        base = f"{self.first_name}-{self.last_name}" if self.first_name and self.last_name else self.email or f"customer-{self.id or 'new'}"
+        base = f"{self.first_name}-{self.last_name}" if self.first_name and self.last_name else (self.email
+            or f"customer-{self.id or 'new'}")
         self.slug = slugify(translit(base, 'ru', reversed=True))
         super(Customer, self).save(*args, **kwargs)
 

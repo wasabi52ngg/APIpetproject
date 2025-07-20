@@ -233,7 +233,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-
 """
 Просто тестовые функции, но я не захотел их удалять, не обращайте на них внимание)
 
@@ -436,5 +435,3 @@ class EmployeeGenericViewSet(CreateModelMixin, viewsets.GenericViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
 """
-
-

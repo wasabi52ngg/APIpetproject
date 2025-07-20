@@ -6,21 +6,25 @@ from first_app.models import Restaurant, Employee, Table, Reservation, Order, Cu
 from datetime import date, time
 from django.utils import timezone
 
+
 @pytest.fixture
 def api_client():
     return APIClient()
+
 
 @pytest.fixture
 def create_user(db):
     return User.objects.create_user(username='testuser', password='testpass')
 
+
 @pytest.fixture
 def create_authenticated_client(api_client, create_user):
-    api_client.post('api/v1/auth/',{'username': 'testuser', 'password': 'testpass'})
+    api_client.post('api/v1/auth/', {'username': 'testuser', 'password': 'testpass'})
     response = api_client.post('/auth/token/login/', {'username': 'testuser', 'password': 'testpass'})
     token = response.data['auth_token']
     api_client.credentials(HTTP_AUTHORIZATION=f'Token {token}')
     return api_client
+
 
 @pytest.fixture
 def create_restaurant(db):
@@ -31,6 +35,7 @@ def create_restaurant(db):
         email="test@restaurant.com",
         slug="test-restaurant"
     )
+
 
 @pytest.fixture
 def create_employee(create_restaurant):
@@ -43,6 +48,7 @@ def create_employee(create_restaurant):
         slug="john-doe-test-restaurant"
     )
 
+
 @pytest.fixture
 def create_table(create_restaurant):
     return Table.objects.create(
@@ -53,6 +59,7 @@ def create_table(create_restaurant):
         slug="table-1-test-restaurant"
     )
 
+
 @pytest.fixture
 def create_customer(db):
     return Customer.objects.create(
@@ -62,6 +69,7 @@ def create_customer(db):
         phone="9876543210",
         slug="jane-smith"
     )
+
 
 @pytest.fixture
 def create_reservation(create_table, create_customer):
@@ -75,6 +83,7 @@ def create_reservation(create_table, create_customer):
         slug="reservation-2025-07-18"
     )
 
+
 @pytest.fixture
 def create_order(create_restaurant, create_customer):
     return Order.objects.create(
@@ -86,6 +95,7 @@ def create_order(create_restaurant, create_customer):
         slug="order-2025-07-18"
     )
 
+
 @pytest.mark.django_db
 def test_restaurant_list(api_client, create_restaurant):
     url = reverse('restaurant-list')
@@ -93,6 +103,7 @@ def test_restaurant_list(api_client, create_restaurant):
     assert response.status_code == 200
     assert len(response.data['results']) == 1
     assert response.data['results'][0]['name'] == "Test Restaurant"
+
 
 @pytest.mark.django_db
 def test_restaurant_create_authenticated(create_authenticated_client, create_user):
@@ -108,6 +119,7 @@ def test_restaurant_create_authenticated(create_authenticated_client, create_use
     assert response.status_code == 201
     assert response.data['name'] == "New Restaurant"
 
+
 @pytest.mark.django_db
 def test_restaurant_create_unauthenticated(api_client):
     url = reverse('restaurant-list')
@@ -121,6 +133,7 @@ def test_restaurant_create_unauthenticated(api_client):
     response = api_client.post(url, data, format='json')
     assert response.status_code == 401
 
+
 @pytest.mark.django_db
 def test_employee_salary_filter(create_authenticated_client, create_employee):
     url = reverse('employee-list') + '?salary__gt=25000'
@@ -129,12 +142,14 @@ def test_employee_salary_filter(create_authenticated_client, create_employee):
     assert len(response.data['results']) == 1
     assert response.data['results'][0]['first_name'] == "John"
 
+
 @pytest.mark.django_db
 def test_employee_salary_filter_no_results(create_authenticated_client, create_employee):
     url = reverse('employee-list') + '?salary__gt=50000'
     response = create_authenticated_client.get(url)
     assert response.status_code == 200
     assert len(response.data['results']) == 0
+
 
 @pytest.mark.django_db
 def test_employee_search(create_authenticated_client, create_employee):
@@ -143,6 +158,7 @@ def test_employee_search(create_authenticated_client, create_employee):
     assert response.status_code == 200
     assert len(response.data['results']) == 1
     assert response.data['results'][0]['first_name'] == "John"
+
 
 @pytest.mark.django_db
 def test_employee_ordering(create_authenticated_client, create_employee):
@@ -159,6 +175,7 @@ def test_employee_ordering(create_authenticated_client, create_employee):
     assert response.status_code == 200
     assert response.data['results'][0]['first_name'] == "John"
 
+
 @pytest.mark.django_db
 def test_table_set_status(create_authenticated_client, create_table):
     url = reverse('table-set-status', kwargs={'pk': create_table.pk})
@@ -169,12 +186,14 @@ def test_table_set_status(create_authenticated_client, create_table):
     create_table.refresh_from_db()
     assert create_table.status == Table.OCCUPIED
 
+
 @pytest.mark.django_db
 def test_table_set_status_unauthenticated(api_client, create_table):
     url = reverse('table-set-status', kwargs={'pk': create_table.pk})
     data = {"status": Table.OCCUPIED}
     response = api_client.post(url, data, format='json')
     assert response.status_code == 401
+
 
 @pytest.mark.django_db
 def test_reservation_cancel(create_authenticated_client, create_reservation, create_table):
@@ -187,6 +206,7 @@ def test_reservation_cancel(create_authenticated_client, create_reservation, cre
     assert create_reservation.status == Reservation.CANCELLED
     assert create_table.status == Table.FREE
 
+
 @pytest.mark.django_db
 def test_reservation_cancel_invalid_status(create_authenticated_client, create_reservation):
     create_reservation.status = Reservation.CANCELLED
@@ -195,6 +215,7 @@ def test_reservation_cancel_invalid_status(create_authenticated_client, create_r
     response = create_authenticated_client.post(url)
     assert response.status_code == 400
     assert 'error' in response.data
+
 
 @pytest.mark.django_db
 def test_order_complete(create_authenticated_client, create_order):
@@ -205,6 +226,7 @@ def test_order_complete(create_authenticated_client, create_order):
     create_order.refresh_from_db()
     assert create_order.status == Order.COMPLETED
 
+
 @pytest.mark.django_db
 def test_order_complete_invalid_status(create_authenticated_client, create_order):
     create_order.status = Order.COMPLETED
@@ -214,11 +236,13 @@ def test_order_complete_invalid_status(create_authenticated_client, create_order
     assert response.status_code == 400
     assert 'error' in response.data
 
+
 @pytest.mark.django_db
 def test_token_login(api_client, create_user):
     response = api_client.post('/auth/token/login/', {'username': 'testuser', 'password': 'testpass'})
     assert response.status_code == 200
     assert 'auth_token' in response.data
+
 
 @pytest.mark.django_db
 def test_token_login_invalid_credentials(api_client):
