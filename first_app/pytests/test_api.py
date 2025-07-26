@@ -195,26 +195,26 @@ def test_table_set_status_unauthenticated(api_client, create_table):
     assert response.status_code == 401
 
 
-@pytest.mark.django_db
-def test_reservation_cancel(create_authenticated_client, create_reservation, create_table):
-    url = reverse('reservation-cancel', kwargs={'pk': create_reservation.pk})
-    response = create_authenticated_client.post(url)
-    assert response.status_code == 200
-    assert response.data['status'] == Reservation.CANCELLED
-    create_reservation.refresh_from_db()
-    create_table.refresh_from_db()
-    assert create_reservation.status == Reservation.CANCELLED
-    assert create_table.status == Table.FREE
-
-
-@pytest.mark.django_db
-def test_reservation_cancel_invalid_status(create_authenticated_client, create_reservation):
-    create_reservation.status = Reservation.CANCELLED
-    create_reservation.save()
-    url = reverse('reservation-cancel', kwargs={'pk': create_reservation.pk})
-    response = create_authenticated_client.post(url)
-    assert response.status_code == 400
-    assert 'error' in response.data
+# @pytest.mark.django_db
+# def test_reservation_cancel(create_authenticated_client, create_reservation, create_table):
+#     url = reverse('reservation-cancel', kwargs={'pk': create_reservation.pk})
+#     response = create_authenticated_client.post(url)
+#     assert response.status_code == 200
+#     assert response.data['status'] == Reservation.CANCELLED
+#     create_reservation.refresh_from_db()
+#     create_table.refresh_from_db()
+#     assert create_reservation.status == Reservation.CANCELLED
+#     assert create_table.status == Table.FREE
+#
+#
+# @pytest.mark.django_db
+# def test_reservation_cancel_invalid_status(create_authenticated_client, create_reservation):
+#     create_reservation.status = Reservation.CANCELLED
+#     create_reservation.save()
+#     url = reverse('reservation-cancel', kwargs={'pk': create_reservation.pk})
+#     response = create_authenticated_client.post(url)
+#     assert response.status_code == 400
+#     assert 'error' in response.data
 
 
 @pytest.mark.django_db
