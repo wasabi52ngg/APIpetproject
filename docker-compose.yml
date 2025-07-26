@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15
@@ -10,7 +12,20 @@ services:
     ports:
       - "5435:5432"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "api_django", "-d", "api_django_db" ]
+      test: ["CMD", "pg_isready", "-U", "api_django", "-d", "api_django_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -26,8 +41,26 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgres://api_django:103064@db:5432/api_django_db
+      REDIS_URL: redis://redis:6379/0
+
+  celery_worker:
+    build: .
+    command: /bin/sh -c "celery -A api_django worker --loglevel=info --concurrency=4"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://api_django:103064@db:5432/api_django_db
+      REDIS_URL: redis://redis:6379/0
 
 volumes:
   postgres_data:
+  redis_data:

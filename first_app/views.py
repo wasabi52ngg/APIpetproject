@@ -13,7 +13,8 @@ from .serializers import (
     RestaurantSerializer, EmployeeSerializer, SupplierSerializer, OrderSerializer, TableSerializer, WarehouseSerializer,
     ProductSerializer, InventorySerializer, MenuSerializer, DishSerializer, MenuDetailSerializer, ModifierSerializer,
     CustomerSerializer, ReservationSerializer, OrderDetailSerializer, PaymentSerializer)
-
+from .tasks import send_reservation_notification
+from django.http import HttpResponse
 
 # Create your views here.
 class StandardResultsSetPagination(PageNumberPagination):
@@ -188,7 +189,12 @@ class ReservationViewSet(viewsets.ModelViewSet):
         reservation.save()
         reservation.table.status = Table.FREE
         reservation.table.save()
+        send_reservation_notification.delay(reservation.id, 'cancelled')
         return Response({'status': reservation.status}, status=status.HTTP_200_OK)
+
+    def perform_create(self, serializer):
+        reservation = serializer.save()
+        send_reservation_notification.delay(reservation.id, 'confirmed')
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -232,15 +238,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['payment_time', 'amount']
     pagination_class = StandardResultsSetPagination
 
-
+def first_view(request):
+    res = add.delay(4,5).get()
+    response = f"<p> Привет {res}</p>"
+    return HttpResponse(response)
 """
 Просто тестовые функции, но я не захотел их удалять, не обращайте на них внимание)
 
-def first_view(request):
-    response = f"<p> Привет </p>"
-    get_some_employee()
-    get_some_employee()
-    return HttpResponse(response)
+
 
 
 def second_view(request):
