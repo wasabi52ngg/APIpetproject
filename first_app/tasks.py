@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task(bind=True, max_retries=3)
 def send_reservation_notification(self, reservation_id, action):
     try:

@@ -16,6 +16,7 @@ from .serializers import (
 from .tasks import send_reservation_notification
 from django.http import HttpResponse
 
+
 # Create your views here.
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 20
@@ -238,15 +239,15 @@ class PaymentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['payment_time', 'amount']
     pagination_class = StandardResultsSetPagination
 
-def first_view(request):
-    res = add.delay(4,5).get()
-    response = f"<p> Привет {res}</p>"
-    return HttpResponse(response)
+
 """
 Просто тестовые функции, но я не захотел их удалять, не обращайте на них внимание)
 
-
-
+def first_view(request):
+    response = f"<p> Привет </p>"
+    get_some_employee()
+    get_some_employee()
+    return HttpResponse(response)
 
 def second_view(request):
     data = {'arg': 'value'}
